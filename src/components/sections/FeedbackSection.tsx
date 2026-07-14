@@ -1,122 +1,133 @@
-'use client';
+"use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star, MessageSquare, ThumbsUp, Send, ShieldCheck,
-  ChevronDown, ChevronUp, Loader2
-} from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { toast } from 'sonner';
+  Star,
+  MessageSquare,
+  ThumbsUp,
+  Send,
+  ShieldCheck,
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+} from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 // --- Mock Data (used as fallback when API has no data) ---
 const categories = [
-  { id: 'platform', label: 'প্ল্যাটফর্ম' },
-  { id: 'content', label: 'কন্টেন্ট' },
-  { id: 'teacher', label: 'শিক্ষক' },
-  { id: 'technology', label: 'প্রযুক্তি' },
-  { id: 'other', label: 'অন্যান্য' },
+  { id: "platform", label: "প্ল্যাটফর্ম" },
+  { id: "content", label: "কন্টেন্ট" },
+  { id: "teacher", label: "শিক্ষক" },
+  { id: "technology", label: "প্রযুক্তি" },
+  { id: "other", label: "অন্যান্য" },
 ];
 
 const defaultRecentFeedback = [
   {
     id: 1,
     rating: 5,
-    category: 'কন্টেন্ট',
-    text: 'গণিতের ভিডিও লেকচারগুলো খুবই সহজ করে বোঝানো হয়েছে। জ্যামিতির অধ্যায়টি বিশেষভাবে সাহায্যকারী।',
-    date: '২ দিন আগে',
+    category: "কন্টেন্ট",
+    text: "গণিতের ভিডিও লেকচারগুলো খুবই সহজ করে বোঝানো হয়েছে। জ্যামিতির অধ্যায়টি বিশেষভাবে সাহায্যকারী।",
+    date: "২ দিন আগে",
     anonymous: false,
-    author: 'রাফি আহমেদ',
+    author: "রাফি আহমেদ",
   },
   {
     id: 2,
     rating: 4,
-    category: 'প্ল্যাটফর্ম',
-    text: 'মোবাইল অ্যাপটি দারুণ, তবে অফলাইন মোড থাকলে আরও ভালো হতো।',
-    date: '৩ দিন আগে',
+    category: "প্ল্যাটফর্ম",
+    text: "মোবাইল অ্যাপটি দারুণ, তবে অফলাইন মোড থাকলে আরও ভালো হতো।",
+    date: "৩ দিন আগে",
     anonymous: true,
-    author: '',
+    author: "",
   },
   {
     id: 3,
     rating: 5,
-    category: 'শিক্ষক',
-    text: 'স্যারের পড়ানোর পদ্ধতি অসাধারণ! প্রতিটি বিষয় ক্লিয়ার করে বোঝান।',
-    date: '৫ দিন আগে',
+    category: "শিক্ষক",
+    text: "স্যারের পড়ানোর পদ্ধতি অসাধারণ! প্রতিটি বিষয় ক্লিয়ার করে বোঝান।",
+    date: "৫ দিন আগে",
     anonymous: false,
-    author: 'নুসরাত জাহান',
+    author: "নুসরাত জাহান",
   },
   {
     id: 4,
     rating: 3,
-    category: 'প্রযুক্তি',
-    text: 'ভিডিও স্ট্রিমিং কখনো কখনো কাটে, ইন্টারনেট স্পিড ভালো থাকলেও। এটি ঠিক করলে ভালো হবে।',
-    date: '১ সপ্তাহ আগে',
+    category: "প্রযুক্তি",
+    text: "ভিডিও স্ট্রিমিং কখনো কখনো কাটে, ইন্টারনেট স্পিড ভালো থাকলেও। এটি ঠিক করলে ভালো হবে।",
+    date: "১ সপ্তাহ আগে",
     anonymous: false,
-    author: 'তানভীর হাসান',
+    author: "তানভীর হাসান",
   },
   {
     id: 5,
     rating: 4,
-    category: 'কন্টেন্ট',
-    text: 'বিজ্ঞানের ল্যাব ভিডিওগুলো খুব সুন্দর। আরও বেশি পরীক্ষণ যোগ করলে ভালো হবে।',
-    date: '১ সপ্তাহ আগে',
+    category: "কন্টেন্ট",
+    text: "বিজ্ঞানের ল্যাব ভিডিওগুলো খুব সুন্দর। আরও বেশি পরীক্ষণ যোগ করলে ভালো হবে।",
+    date: "১ সপ্তাহ আগে",
     anonymous: true,
-    author: '',
+    author: "",
   },
   {
     id: 6,
     rating: 5,
-    category: 'প্ল্যাটফর্ম',
-    text: 'ড্যাশবোর্ড এবং প্রগ্রেস ট্র্যাকিং ফিচারটি চমৎকার। নিজের অগ্রগতি দেখতে পাওয়া অনুপ্রেরণামূলক।',
-    date: '২ সপ্তাহ আগে',
+    category: "প্ল্যাটফর্ম",
+    text: "ড্যাশবোর্ড এবং প্রগ্রেস ট্র্যাকিং ফিচারটি চমৎকার। নিজের অগ্রগতি দেখতে পাওয়া অনুপ্রেরণামূলক।",
+    date: "২ সপ্তাহ আগে",
     anonymous: false,
-    author: 'সাদিয়া রহমান',
+    author: "সাদিয়া রহমান",
   },
 ];
 
 const featureRequests = [
   {
     id: 1,
-    title: 'অফলাইন ডাউনলোড',
-    description: 'ভিডিও এবং নোট অফলাইনে সেভ করে রাখার সুবিধা',
+    title: "অফলাইন ডাউনলোড",
+    description: "ভিডিও এবং নোট অফলাইনে সেভ করে রাখার সুবিধা",
     votes: 128,
   },
   {
     id: 2,
-    title: 'গ্রুপ স্টাডি মোড',
-    description: 'বন্ধুদের সাথে একসাথে পড়াশোনা করার ফিচার',
+    title: "গ্রুপ স্টাডি মোড",
+    description: "বন্ধুদের সাথে একসাথে পড়াশোনা করার ফিচার",
     votes: 95,
   },
   {
     id: 3,
-    title: 'ভয়েস নোট',
-    description: 'অডিও রেকর্ডিং দিয়ে নোট তৈরি করার সুবিধা',
+    title: "ভয়েস নোট",
+    description: "অডিও রেকর্ডিং দিয়ে নোট তৈরি করার সুবিধা",
     votes: 67,
   },
   {
     id: 4,
-    title: 'প্রতিযোগিতামূলক পরীক্ষা',
-    description: 'সপ্তাহিক র‍্যাংকিং সহ প্রতিযোগিতামূলক পরীক্ষা ব্যবস্থা',
+    title: "প্রতিযোগিতামূলক পরীক্ষা",
+    description: "সপ্তাহিক র‍্যাংকিং সহ প্রতিযোগিতামূলক পরীক্ষা ব্যবস্থা",
     votes: 154,
   },
 ];
 
 // --- Sub-components ---
 
-function StarRating({ rating, onRatingChange, interactive = false, size = 'md' }: {
+function StarRating({
+  rating,
+  onRatingChange,
+  interactive = false,
+  size = "md",
+}: {
   rating: number;
   onRatingChange?: (r: number) => void;
   interactive?: boolean;
-  size?: 'sm' | 'md';
+  size?: "sm" | "md";
 }) {
   const [hoverRating, setHoverRating] = useState(0);
-  const starSize = size === 'sm' ? 'w-4 h-4' : 'w-6 h-6';
+  const starSize = size === "sm" ? "w-4 h-4" : "w-6 h-6";
 
   return (
     <div className="flex items-center gap-0.5">
@@ -127,7 +138,7 @@ function StarRating({ rating, onRatingChange, interactive = false, size = 'md' }
           disabled={!interactive}
           whileTap={interactive ? { scale: 1.3 } : undefined}
           whileHover={interactive ? { scale: 1.2 } : undefined}
-          className={`${interactive ? 'cursor-pointer' : 'cursor-default'} transition-transform`}
+          className={`${interactive ? "cursor-pointer" : "cursor-default"} transition-transform`}
           onMouseEnter={() => interactive && setHoverRating(star)}
           onMouseLeave={() => interactive && setHoverRating(0)}
           onClick={() => interactive && onRatingChange?.(star)}
@@ -136,8 +147,8 @@ function StarRating({ rating, onRatingChange, interactive = false, size = 'md' }
           <Star
             className={`${starSize} transition-colors duration-150 ${
               star <= (hoverRating || rating)
-                ? 'fill-amber-400 text-amber-400'
-                : 'fill-muted text-muted'
+                ? "fill-amber-400 text-amber-400"
+                : "fill-muted text-muted"
             }`}
           />
         </motion.button>
@@ -168,7 +179,10 @@ function FeedbackCard({ feedback }: { feedback: FeedbackItem }) {
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex items-center gap-2 flex-wrap">
               <StarRating rating={feedback.rating} size="sm" />
-              <Badge variant="secondary" className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+              <Badge
+                variant="secondary"
+                className="text-[10px] bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+              >
                 {feedback.category}
               </Badge>
             </div>
@@ -179,12 +193,16 @@ function FeedbackCard({ feedback }: { feedback: FeedbackItem }) {
               </Badge>
             )}
           </div>
-          <p className="text-sm text-foreground/90 leading-relaxed mb-2">{feedback.text}</p>
+          <p className="text-sm text-foreground/90 leading-relaxed mb-2">
+            {feedback.text}
+          </p>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">
-              {feedback.anonymous ? 'বেনামী ব্যবহারকারী' : feedback.author}
+              {feedback.anonymous ? "বেনামী ব্যবহারকারী" : feedback.author}
             </span>
-            <span className="text-xs text-muted-foreground">{feedback.date}</span>
+            <span className="text-xs text-muted-foreground">
+              {feedback.date}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -192,7 +210,11 @@ function FeedbackCard({ feedback }: { feedback: FeedbackItem }) {
   );
 }
 
-function FeatureRequestCard({ request }: { request: typeof featureRequests[0] }) {
+function FeatureRequestCard({
+  request,
+}: {
+  request: (typeof featureRequests)[0];
+}) {
   const [voted, setVoted] = useState(false);
   const [voteCount, setVoteCount] = useState(request.votes);
 
@@ -220,17 +242,21 @@ function FeatureRequestCard({ request }: { request: typeof featureRequests[0] })
               whileTap={{ scale: 0.85 }}
               className={`flex flex-col items-center gap-0.5 px-2.5 py-1.5 rounded-lg transition-colors shrink-0 ${
                 voted
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-accent text-muted-foreground hover:bg-primary/10 hover:text-primary'
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-accent text-muted-foreground hover:bg-primary/10 hover:text-primary"
               }`}
-              aria-label={voted ? 'ভোট সরান' : 'ভোট দিন'}
+              aria-label={voted ? "ভোট সরান" : "ভোট দিন"}
             >
               <ThumbsUp className="w-4 h-4" />
               <span className="text-xs font-bold">{voteCount}</span>
             </motion.button>
             <div className="min-w-0 flex-1">
-              <h4 className="text-sm font-semibold text-foreground">{request.title}</h4>
-              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">{request.description}</p>
+              <h4 className="text-sm font-semibold text-foreground">
+                {request.title}
+              </h4>
+              <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
+                {request.description}
+              </p>
             </div>
           </div>
         </CardContent>
@@ -243,23 +269,25 @@ function FeatureRequestCard({ request }: { request: typeof featureRequests[0] })
 
 export default function FeedbackSection() {
   const [rating, setRating] = useState(0);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [feedbackText, setFeedbackText] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [feedbackText, setFeedbackText] = useState("");
   const [isAnonymous, setIsAnonymous] = useState(false);
   const [showAllFeedback, setShowAllFeedback] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [recentFeedback, setRecentFeedback] = useState<FeedbackItem[]>(defaultRecentFeedback);
+  const [recentFeedback, setRecentFeedback] = useState<FeedbackItem[]>(
+    defaultRecentFeedback,
+  );
 
   const fetchFeedback = useCallback(async () => {
     try {
-      const res = await fetch('/api/feedback?limit=20');
+      const res = await fetch("/api/feedback?limit=20");
       const data = await res.json();
       if (data.success && Array.isArray(data.data) && data.data.length > 0) {
         // Merge API feedback with defaults, API feedback first
         setRecentFeedback([...data.data, ...defaultRecentFeedback.slice(0, 3)]);
       }
     } catch (error) {
-      console.error('Error fetching feedback:', error);
+      console.error("Error fetching feedback:", error);
       // Keep default feedback on error
     }
   }, []);
@@ -268,30 +296,34 @@ export default function FeedbackSection() {
     fetchFeedback();
   }, [fetchFeedback]);
 
-  const displayedFeedback = showAllFeedback ? recentFeedback : recentFeedback.slice(0, 3);
+  const displayedFeedback = showAllFeedback
+    ? recentFeedback
+    : recentFeedback.slice(0, 3);
 
   const handleSubmit = async () => {
     if (rating === 0) {
-      toast.error('অনুগ্রহ করে রেটিং দিন');
+      toast.error("অনুগ্রহ করে রেটিং দিন");
       return;
     }
     if (!selectedCategory) {
-      toast.error('অনুগ্রহ করে ক্যাটাগরি নির্বাচন করুন');
+      toast.error("অনুগ্রহ করে ক্যাটাগরি নির্বাচন করুন");
       return;
     }
     if (!feedbackText.trim()) {
-      toast.error('অনুগ্রহ করে আপনার মতামত লিখুন');
+      toast.error("অনুগ্রহ করে আপনার মতামত লিখুন");
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const categoryLabel = categories.find((c) => c.id === selectedCategory)?.label || selectedCategory;
+      const categoryLabel =
+        categories.find((c) => c.id === selectedCategory)?.label ||
+        selectedCategory;
 
-      const res = await fetch('/api/feedback', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           type: selectedCategory,
           subject: categoryLabel,
@@ -304,7 +336,7 @@ export default function FeedbackSection() {
       const data = await res.json();
 
       if (data.success) {
-        toast.success('আপনার মতামত সফলভাবে জমা হয়েছে! ধন্যবাদ।');
+        toast.success("আপনার মতামত সফলভাবে জমা হয়েছে! ধন্যবাদ।");
 
         // Add the new feedback to the list immediately
         const newFeedback: FeedbackItem = {
@@ -312,24 +344,24 @@ export default function FeedbackSection() {
           rating,
           category: categoryLabel,
           text: feedbackText.trim(),
-          date: 'এইমাত্র',
+          date: "এইমাত্র",
           anonymous: isAnonymous,
-          author: isAnonymous ? '' : 'আপনি',
+          author: isAnonymous ? "" : "আপনি",
         };
 
         setRecentFeedback((prev) => [newFeedback, ...prev]);
 
         // Reset form
         setRating(0);
-        setSelectedCategory('');
-        setFeedbackText('');
+        setSelectedCategory("");
+        setFeedbackText("");
         setIsAnonymous(false);
       } else {
-        toast.error(data.error || 'ফিডব্যাক জমা দিতে সমস্যা হয়েছে');
+        toast.error(data.error || "ফিডব্যাক জমা দিতে সমস্যা হয়েছে");
       }
     } catch (error) {
-      console.error('Error submitting feedback:', error);
-      toast.error('ফিডব্যাক জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।');
+      console.error("Error submitting feedback:", error);
+      toast.error("ফিডব্যাক জমা দিতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
     } finally {
       setIsSubmitting(false);
     }
@@ -347,9 +379,12 @@ export default function FeedbackSection() {
         <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-600 shadow-lg shadow-emerald-200 dark:shadow-emerald-900/30 mb-4">
           <MessageSquare className="w-7 h-7 text-white" />
         </div>
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">মতামত ও পরামর্শ</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+          মতামত ও পরামর্শ
+        </h1>
         <p className="text-muted-foreground mt-2 text-sm sm:text-base max-w-lg mx-auto">
-          আপনার মতামত আমাদের কাছে মূল্যবান। প্ল্যাটফর্ম উন্নত করতে আপনার পরামর্শ দিন।
+          আপনার মতামত আমাদের কাছে মূল্যবান। প্ল্যাটফর্ম উন্নত করতে আপনার পরামর্শ
+          দিন।
         </p>
       </motion.div>
 
@@ -371,14 +406,23 @@ export default function FeedbackSection() {
             <div className="space-y-2">
               <Label className="text-sm font-medium">রেটিং দিন</Label>
               <div className="flex items-center gap-3">
-                <StarRating rating={rating} onRatingChange={setRating} interactive size="md" />
+                <StarRating
+                  rating={rating}
+                  onRatingChange={setRating}
+                  interactive
+                  size="md"
+                />
                 {rating > 0 && (
                   <motion.span
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
                     className="text-sm text-muted-foreground"
                   >
-                    {['', 'খারাপ', 'মোটামুটি', 'ভালো', 'খুব ভালো', 'অসাধারণ'][rating]}
+                    {
+                      ["", "খারাপ", "মোটামুটি", "ভালো", "খুব ভালো", "অসাধারণ"][
+                        rating
+                      ]
+                    }
                   </motion.span>
                 )}
               </div>
@@ -386,7 +430,9 @@ export default function FeedbackSection() {
 
             {/* Category */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">ক্যাটাগরি নির্বাচন করুন</Label>
+              <Label className="text-sm font-medium">
+                ক্যাটাগরি নির্বাচন করুন
+              </Label>
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
                   <motion.button
@@ -395,8 +441,8 @@ export default function FeedbackSection() {
                     onClick={() => setSelectedCategory(cat.id)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all border ${
                       selectedCategory === cat.id
-                        ? 'bg-primary text-primary-foreground border-primary shadow-md'
-                        : 'bg-accent text-muted-foreground border-border hover:border-primary/30 hover:text-primary'
+                        ? "bg-primary text-primary-foreground border-primary shadow-md"
+                        : "bg-accent text-muted-foreground border-border hover:border-primary/30 hover:text-primary"
                     }`}
                   >
                     {cat.label}
@@ -407,7 +453,9 @@ export default function FeedbackSection() {
 
             {/* Feedback text */}
             <div className="space-y-2">
-              <Label htmlFor="feedback-text" className="text-sm font-medium">বিস্তারিত মতামত</Label>
+              <Label htmlFor="feedback-text" className="text-sm font-medium">
+                বিস্তারিত মতামত
+              </Label>
               <Textarea
                 id="feedback-text"
                 placeholder="আপনার মতামত বা পরামর্শ এখানে লিখুন..."
@@ -420,10 +468,15 @@ export default function FeedbackSection() {
             {/* Anonymous toggle */}
             <div className="flex items-center justify-between gap-4 p-3 rounded-lg bg-accent/50">
               <div className="space-y-0.5">
-                <Label htmlFor="anonymous-toggle" className="text-sm font-medium cursor-pointer">
+                <Label
+                  htmlFor="anonymous-toggle"
+                  className="text-sm font-medium cursor-pointer"
+                >
                   বেনামী মতামত
                 </Label>
-                <p className="text-xs text-muted-foreground">আপনার পরিচয় গোপন রাখা হবে</p>
+                <p className="text-xs text-muted-foreground">
+                  আপনার পরিচয় গোপন রাখা হবে
+                </p>
               </div>
               <Switch
                 id="anonymous-toggle"
@@ -466,7 +519,10 @@ export default function FeedbackSection() {
             <MessageSquare className="w-5 h-5 text-emerald-600" />
             সাম্প্রতিক মতামত
           </h2>
-          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <Badge
+            variant="secondary"
+            className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+          >
             {recentFeedback.length}টি মতামত
           </Badge>
         </div>
@@ -510,7 +566,10 @@ export default function FeedbackSection() {
             <ThumbsUp className="w-5 h-5 text-emerald-600" />
             ফিচার অনুরোধ
           </h2>
-          <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400">
+          <Badge
+            variant="secondary"
+            className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+          >
             {featureRequests.length}টি অনুরোধ
           </Badge>
         </div>
